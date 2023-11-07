@@ -51,29 +51,12 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         # Update url params if specified
         if params:
             self.requests_kws.update({"params": params})
-        self.requests_kws = self.__delete_unnecessary_requests_kws(self.requests_kws)
-
-    def __delete_unnecessary_requests_kws(self, requests_kws: dict) -> dict:
-        # Delete "some unnecessary" parameters from URL
-        # Because program will update it while making requests
-        rm_params = [
-            "q",
-            "page",
-            "suggestionId",
-            "requestId",
-        ]
-        for i in rm_params:
-            if i in requests_kws["params"]:
-                del requests_kws["params"][i]
-
-        return requests_kws
 
     @property
     def urls(self) -> set[str]:
-        params_as_str = urllib.parse.urlencode(self.requests_kws["params"])
         return {
             urllib.parse.quote(
-                f"https://flipkart.com/search?page={page}&q={self.search_query}&{params_as_str}",
+                f"https://flipkart.com/search?page={page}&q={self.search_query}",
                 safe="/?:=&",
             )
             for page in self.pages
