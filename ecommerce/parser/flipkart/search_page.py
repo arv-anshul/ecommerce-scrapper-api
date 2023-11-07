@@ -11,7 +11,7 @@ from ecommerce import constants as C
 from ecommerce import types
 from ecommerce.core import io
 from ecommerce.logger import get_logger
-from ecommerce.parser import Pagination, fetch_page, has_key_value
+from ecommerce.parser import Pagination, fetch_page, get_PageData, has_key_value
 from ecommerce.parser.search_page import BaseSearchPageHTMLParser
 from ecommerce.validator.flipkart import FlipkartSearchPageProductSummaryModel
 
@@ -99,26 +99,13 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
             raise ValueError(msg)
 
     @staticmethod
-    async def get_PageData(html: str) -> types.JSON:
-        soup = BeautifulSoup(html, "html.parser")
-        script_tag = soup.select_one("#is_script")
-
-        if script_tag is None:
-            msg = (
-                "No script tag with id='#is_script' found in search page html content."
-            )
-            logger.error(msg)
-            raise ValueError(msg)
-        text = script_tag.text[27:-1]  # Clean text to parse JSON content
-        content = json.loads(text)
-        return content["pageDataV4"]["page"]["data"]
-
-    @staticmethod
     async def get_ProductSummary(
         page_data: types.JSON,
     ) -> list[FlipkartSearchPageProductSummaryModel]:
         products = []
-        for i in [i for v in page_data.values() for i in v]:
+        for i in [
+            i for v in page_data["pageDataV4"]["page"]["data"].values() for i in v
+        ]:
             region_validation = has_key_value(
                 i, "slotType", "WIDGET"
             ) and has_key_value(i, "type", "PRODUCT_SUMMARY")
@@ -158,7 +145,7 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
             if only_cached_pages
             else await self.get_html_pages()
         )
-        items = await asyncio.gather(*[self.get_PageData(i) for i in html_pages])
+        items = await asyncio.gather(*[get_PageData(i) for i in html_pages])
         return items
 
     async def parse_all_ProductSummary(

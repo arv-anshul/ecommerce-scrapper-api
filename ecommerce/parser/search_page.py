@@ -18,11 +18,6 @@ class BaseSearchPageHTMLParser(ABC):
 
     @staticmethod
     @abstractmethod
-    async def get_PageData():
-        ...
-
-    @staticmethod
-    @abstractmethod
     async def get_ProductSummary():
         ...
 
