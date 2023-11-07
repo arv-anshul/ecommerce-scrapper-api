@@ -42,6 +42,8 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
             __kwargs = io.get_requests_kwargs(curl_fp)
             self.requests_kws = __kwargs if __kwargs else {}
         else:
+            self.requests_kws = {}
+        if not self.requests_kws:
             warnings.warn(
                 "Please provide curl command for making requests. "
                 "This may cause error in future.",
