@@ -3,4 +3,8 @@ class PaginationError(ValueError):
 
 
 class SearchPageError(Exception):
-    """Error for SearchPages of websites."""
+    """Exception for SearchPages of websites."""
+
+
+class ReviewPageError(Exception):
+    """Exception for ReviewPages of websites."""
