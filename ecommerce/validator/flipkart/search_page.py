@@ -5,9 +5,9 @@ from pydantic import BaseModel, field_validator
 
 class AnalyticsData(BaseModel):
     category: str
-    subCategory: str
+    subCategory: Optional[str] = None
     superCategory: str
-    vertical: str
+    vertical: Optional[str] = None
 
 
 class Availability(BaseModel):
@@ -17,25 +17,28 @@ class Availability(BaseModel):
     showMessage: bool
 
 
-class Image(BaseModel):
-    aspectRatio: Any
-    contentInfo: Any
-    height: Any
-    url: str
-    width: Any
-
-
 class Video(BaseModel):
-    height: Any
     videoId: str
     videoProvider: str
     videoType: str
-    width: Any
 
 
 class Media(BaseModel):
-    images: list[Image]
+    images: list
     videos: Optional[list[Video]] = None
+
+    @field_validator("images")
+    @classmethod
+    def extract_image_urls(cls, v: list) -> list[str]:
+        urls = []
+        for d in v:
+            url = (
+                d["url"]
+                .replace("{@width}/{@height}", "1000/1000")
+                .replace("{@quality}", "100")
+            )
+            urls.append(url)
+        return urls
 
 
 class FinalPrice(BaseModel):
@@ -81,18 +84,6 @@ class Pricing(BaseModel):
     type: str
 
 
-class ProductCardImage(BaseModel):
-    dynamicImageUrl: str
-    height: int
-    type: str
-    width: int
-
-
-class ProductCardTagDetail(BaseModel):
-    image: ProductCardImage
-    type: str
-
-
 class Rating(BaseModel):
     average: float
     base: int
@@ -100,14 +91,14 @@ class Rating(BaseModel):
     count: int
     histogramBaseCount: int
     reviewCount: int
-    roundOffCount: str
+    roundOffCount: Optional[str] = None
     type: str
 
 
 class Titles(BaseModel):
-    newTitle: str
+    newTitle: Optional[str] = None
     subtitle: Optional[str] = None
-    superTitle: str
+    superTitle: Optional[str] = None
     title: str
 
 
@@ -119,21 +110,20 @@ class FlipkartSearchPageProductSummaryModel(BaseModel):
     elementId: str
     id: str
     itemId: str
-    keySpecs: list[str]
+    keySpecs: Optional[list[str]] = None
     listingId: str
     media: Media
-    minKeySpecs: list[str]
+    minKeySpecs: Optional[list[str]] = None
     parentId: int
     pricing: Pricing
     productBrand: str
-    productCardTagDetails: list[ProductCardTagDetail]
     rating: Rating
     smartUrl: str
     tags: list[str]
     titles: Titles
     type: str
     vertical: str
-    warrantySummary: str
+    warrantySummary: Optional[str] = None
 
     @field_validator("baseUrl")
     @classmethod
