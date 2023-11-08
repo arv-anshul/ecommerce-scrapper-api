@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class ProductSchema(BaseModel):
+class _ProductSchema(BaseModel):
     aggregateRating: dict
     brand: dict
     image: str
@@ -11,7 +11,7 @@ class ProductSchema(BaseModel):
     offers: dict
 
 
-class ProductOffers(BaseModel):
+class _ProductOffers(BaseModel):
     """
     IDENTIFIER
     ----------
@@ -32,7 +32,7 @@ class ProductOffers(BaseModel):
     title: str
 
 
-class ProductSpecifications(BaseModel):
+class _ProductSpecifications(BaseModel):
     """
     IDENTIFIER
     ----------
@@ -60,8 +60,8 @@ class _ProductVariants:
     """
 
 
-class ProductInfo(BaseModel):
-    schemas: Optional[ProductSchema]
-    offers: Optional[list[ProductOffers]]
-    specs: Optional[list[ProductSpecifications]]
+class FlipkartProductInfo(BaseModel):
+    schemas: Optional[_ProductSchema]
+    offers: Optional[list[_ProductOffers]]
+    specs: Optional[list[_ProductSpecifications]]
     variants: Optional[dict[str, list[str]]]
