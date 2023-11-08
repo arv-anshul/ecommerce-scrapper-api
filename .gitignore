@@ -10,6 +10,9 @@ __rough__/
 *.arv.*
 logs/
 
+# Specific to this project
+configs/curl/
+
 # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- #
 
 # Byte-compiled / optimized / DLL files

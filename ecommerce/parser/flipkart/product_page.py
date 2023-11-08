@@ -4,7 +4,6 @@ from typing import Optional
 
 import httpx
 
-from ecommerce import constants as C
 from ecommerce import types
 from ecommerce.core import io
 from ecommerce.logger import get_logger
@@ -22,6 +21,7 @@ from ecommerce.validator.flipkart.product_page import (
 )
 
 logger = get_logger(__name__)
+PRODUCT_PAGE_CURL_PATH = "configs/curl/flipkart.productPage"
 
 
 class FlipkartProductPage(BaseProductPageHTMLParser):
@@ -29,7 +29,7 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
         self,
         url: str,
         *,
-        curl_fp: Optional[types.PathLike] = C.PRODUCT_PAGE_CURL_PATH,
+        curl_fp: Optional[types.PathLike] = PRODUCT_PAGE_CURL_PATH,
         params: Optional[types.URLParams] = None,
     ) -> None:
         self.url = url

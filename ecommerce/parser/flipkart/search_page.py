@@ -7,7 +7,6 @@ from typing import Optional
 import httpx
 from bs4 import BeautifulSoup
 
-from ecommerce import constants as C
 from ecommerce import types
 from ecommerce.core import io
 from ecommerce.logger import get_logger
@@ -16,6 +15,7 @@ from ecommerce.parser.search_page import BaseSearchPageHTMLParser
 from ecommerce.validator.flipkart import FlipkartSearchPageProductSummaryModel
 
 logger = get_logger(__name__)
+SEARCH_PAGE_CURL_PATH = "configs/curl/flipkart.searchPage"
 
 
 class FlipkartSearchPage(BaseSearchPageHTMLParser):
@@ -23,7 +23,7 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         self,
         search_query: str,
         *,
-        curl_fp: Optional[types.PathLike] = C.SEARCH_PAGE_CURL_PATH,
+        curl_fp: Optional[types.PathLike] = SEARCH_PAGE_CURL_PATH,
         params: Optional[types.URLParams] = None,
         pages: types.PagesLike = range(1, 6),
     ):
