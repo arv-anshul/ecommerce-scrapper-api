@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 
 from ecommerce import types
 from ecommerce.core import io
+from ecommerce.core.errors import SearchPageError
 from ecommerce.logger import get_logger
 from ecommerce.parser import Pagination, fetch_page, get_PageData, has_key_value
 from ecommerce.parser.search_page import BaseSearchPageHTMLParser
@@ -16,6 +17,10 @@ from ecommerce.validator.flipkart import FlipkartSearchPageProductSummaryModel
 
 logger = get_logger(__name__)
 SEARCH_PAGE_CURL_PATH = "configs/curl/flipkart.searchPage"
+
+
+class FlipkartSearchPageError(SearchPageError):
+    """Exception specific to Flipkart's SearchPage."""
 
 
 class FlipkartSearchPage(BaseSearchPageHTMLParser):
@@ -123,6 +128,8 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
                 except (KeyError, IndexError) as e:
                     logger.error(e)
                     continue
+        if not products:
+            raise FlipkartSearchPageError("0 product parsed!")
         logger.info(f"Parsed {len(products)} products summary.")
         return products
 
@@ -157,5 +164,7 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         pages_data = await self.parse_all_PageData(only_cached_pages)
         items = await asyncio.gather(*[self.get_ProductSummary(i) for i in pages_data])
         products = [j for i in items for j in i]
+        if not products:
+            raise FlipkartSearchPageError("0 product parsed!")
         logger.info(f"Parsed total {len(products)} products summaries.")
         return products
