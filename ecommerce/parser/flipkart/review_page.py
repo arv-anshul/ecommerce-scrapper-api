@@ -1,6 +1,5 @@
 import asyncio
 import urllib.parse
-import warnings
 from typing import Optional
 
 import httpx
@@ -27,29 +26,13 @@ class FlipkartReviewPage(BaseReviewPageHTMLParser):
         self,
         product_url: str,
         pages: types.PagesLike = range(1, 5),
-        curl_fp: Optional[types.PathLike] = FLIPKART_REVIEW_PAGE_CURL_PATH,
         params: Optional[types.URLParams] = None,
     ) -> None:
         self._product_url = product_url
         self.pages = Pagination(pages)
         self.__cached_html_pages = {}
 
-        self.__import_curl_command(curl_fp, params)
-
-    def __import_curl_command(
-        self, curl_fp: Optional[types.PathLike], params: Optional[types.URLParams]
-    ) -> None:
-        self.requests_kws = {}
-        if curl_fp:
-            __kwargs = io.get_requests_kwargs(curl_fp)
-            self.requests_kws = __kwargs if __kwargs else {}
-        if not self.requests_kws:
-            warnings.warn(
-                "Please provide curl command for making requests. "
-                "This may cause error in future.",
-                FutureWarning,
-            )
-
+        self.requests_kws = io.get_curl_command(FLIPKART_REVIEW_PAGE_CURL_PATH)
         self.requests_kws.update({"params": params}) if params else ...
 
     @property

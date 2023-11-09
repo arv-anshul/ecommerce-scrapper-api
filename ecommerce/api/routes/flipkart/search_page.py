@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ValidationError
 
-from ecommerce.parser.flipkart import SEARCH_PAGE_CURL_PATH, FlipkartSearchPage
+from ecommerce.parser.flipkart import FlipkartSearchPage
 from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.parser.flipkart.search_page import FlipkartSearchPageError
 from ecommerce.validator.flipkart.search_page import (
@@ -17,7 +17,7 @@ class FlipkartSearchPageParams(BaseModel):
 
 @search_page_router.get("/")
 async def search(q: str, page: int = 1) -> list[FlipkartSearchPageProductSummaryModel]:
-    flipkart = FlipkartSearchPage(q, pages=[page], curl_fp=SEARCH_PAGE_CURL_PATH)
+    flipkart = FlipkartSearchPage(q, pages=[page])
     html = await flipkart.get_html_pages()
     try:
         summary = await flipkart.get_ProductSummary(
@@ -33,9 +33,7 @@ async def search_with_params(
     q: str,
     params: FlipkartSearchPageParams = FlipkartSearchPageParams(params={"page": "1"}),
 ) -> list[FlipkartSearchPageProductSummaryModel]:
-    flipkart = FlipkartSearchPage(
-        q, curl_fp=SEARCH_PAGE_CURL_PATH, params=params.params
-    )
+    flipkart = FlipkartSearchPage(q, params=params.params)
     html = await flipkart.get_html_pages()
     try:
         summary = await flipkart.get_ProductSummary(
@@ -67,9 +65,7 @@ async def search_in_batch(
     q: str, from_page: int = 1, to_page: int = 5
 ) -> list[FlipkartSearchPageProductSummaryModel]:
     _validate_pagination(from_page, to_page)
-    flipkart = FlipkartSearchPage(
-        q, pages=range(from_page, to_page), curl_fp=SEARCH_PAGE_CURL_PATH
-    )
+    flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page))
     try:
         summary = await flipkart.parse_all_ProductSummary()
     except (ValidationError, TypeError, KeyError) as e:
@@ -86,10 +82,7 @@ async def search_in_batch_with_params(
 ) -> list[FlipkartSearchPageProductSummaryModel]:
     _validate_pagination(from_page, to_page)
     flipkart = FlipkartSearchPage(
-        q,
-        pages=range(from_page, to_page),
-        curl_fp=SEARCH_PAGE_CURL_PATH,
-        params=params.params,
+        q, pages=range(from_page, to_page), params=params.params
     )
     try:
         summary = await flipkart.parse_all_ProductSummary()

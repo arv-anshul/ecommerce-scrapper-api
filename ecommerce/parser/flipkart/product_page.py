@@ -1,5 +1,4 @@
 import asyncio
-import warnings
 from typing import Optional
 
 import httpx
@@ -24,35 +23,13 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
     def __init__(
         self,
         url: str,
-        *,
-        curl_fp: Optional[types.PathLike] = PRODUCT_PAGE_CURL_PATH,
         params: Optional[types.URLParams] = None,
     ) -> None:
         self.url = url
         self.__cached_page: dict[str, str] = {}
-        self._import_requests_kwargs(curl_fp, params)
 
-    def _import_requests_kwargs(
-        self,
-        curl_fp: Optional[types.PathLike],
-        params: Optional[types.URLParams],
-    ) -> None:
-        # Set requests_kws for better http request
-        if curl_fp:
-            __kwargs = io.get_requests_kwargs(curl_fp)
-            self.requests_kws = __kwargs if __kwargs else {}
-        else:
-            self.requests_kws = {}
-        if not self.requests_kws:
-            warnings.warn(
-                "Please provide curl command for making requests. "
-                "This may cause error in future.",
-                FutureWarning,
-            )
-
-        # Update url params if specified
-        if params:
-            self.requests_kws.update({"params": params})
+        self.requests_kws = io.get_curl_command(PRODUCT_PAGE_CURL_PATH)
+        self.requests_kws.update({"params": params}) if params else ...
 
     @property
     def get_cached_html_pages(self) -> Optional[dict[str, str]]:
@@ -129,10 +106,9 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
         client: httpx.AsyncClient, *urls: str
     ) -> list[FlipkartProductInfo]:
         tasks = []
-        with warnings.catch_warnings(record=True, category=FutureWarning):
-            for url in urls:
-                flipkart = FlipkartProductPage(url, curl_fp=None)
-                tasks.append(flipkart.get_html_page(client))
+        for url in urls:
+            flipkart = FlipkartProductPage(url)
+            tasks.append(flipkart.get_html_page(client))
         pages = await asyncio.gather(*tasks)
         infos = asyncio.gather(*[FlipkartProductPage.get_ProductInfo(i) for i in pages])
         return await infos

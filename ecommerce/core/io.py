@@ -1,6 +1,5 @@
 import functools
 import os.path
-from typing import Optional
 
 import curler
 
@@ -10,15 +9,15 @@ logger = get_logger(__name__)
 
 
 @functools.lru_cache(8)
-def get_requests_kwargs(fp: str, return_params: bool = False) -> Optional[dict]:
+def get_curl_command(fp: str) -> dict:
     logger.info(f"Reading: {fp!r}")
-    requests_kws = (
-        dict(curler.parse_file(fp).for_requests) if os.path.exists(fp) else None
-    )
-    # Remove url and method keys because they are passed explicitly
-    if requests_kws:
+    if os.path.exists(fp):
+        requests_kws = dict(curler.parse_file(fp).for_requests)
+        # Remove url and method keys because they are passed explicitly
         del requests_kws["url"]
         del requests_kws["method"]
-        if not return_params:
-            del requests_kws["params"]
         return requests_kws
+
+    error_msg = f"Path: {fp!r}"
+    logger.error(error_msg)
+    raise FileNotFoundError(error_msg)

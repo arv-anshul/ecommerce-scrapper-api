@@ -1,7 +1,6 @@
 import asyncio
 import json
 import urllib.parse
-import warnings
 from typing import Optional
 
 import httpx
@@ -28,37 +27,15 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
     def __init__(
         self,
         search_query: str,
-        *,
-        curl_fp: Optional[types.PathLike] = SEARCH_PAGE_CURL_PATH,
-        params: Optional[types.URLParams] = None,
         pages: types.PagesLike = range(1, 6),
+        params: Optional[types.URLParams] = None,
     ):
         self.search_query = search_query
         self.pages = Pagination(pages)
         self.__cached_html_pages = {}
-        self._import_requests_kwargs(curl_fp, params)
 
-    def _import_requests_kwargs(
-        self,
-        curl_fp: Optional[types.PathLike],
-        params: Optional[types.URLParams],
-    ) -> None:
-        # Set requests_kws for better http request
-        if curl_fp:
-            __kwargs = io.get_requests_kwargs(curl_fp)
-            self.requests_kws = __kwargs if __kwargs else {}
-        else:
-            self.requests_kws = {}
-        if not self.requests_kws:
-            warnings.warn(
-                "Please provide curl command for making requests. "
-                "This may cause error in future.",
-                FutureWarning,
-            )
-
-        # Update url params if specified
-        if params:
-            self.requests_kws.update({"params": params})
+        self.requests_kws = io.get_curl_command(SEARCH_PAGE_CURL_PATH)
+        self.requests_kws.update({"params": params}) if params else ...
 
     @property
     def urls(self) -> set[str]:
