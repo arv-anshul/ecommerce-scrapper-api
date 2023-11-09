@@ -11,7 +11,7 @@ from ecommerce import types
 from ecommerce.core import io
 from ecommerce.core.errors import SearchPageError
 from ecommerce.logger import get_logger
-from ecommerce.parser import Pagination, fetch_page, get_PageData, has_key_value
+from ecommerce.parser import Pagination, fetch_page, has_key_value
 from ecommerce.parser.search_page import BaseSearchPageHTMLParser
 from ecommerce.validator.flipkart import FlipkartSearchPageProductSummaryModel
 
@@ -133,35 +133,20 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         logger.info(f"Parsed {len(products)} products summary.")
         return products
 
-    async def parse_all_ItemList(
-        self,
-        only_cached_pages: bool = False,
-    ) -> list[types.JSON]:
-        html_pages = (
-            self.get_all_cached_html_pages.values()
-            if only_cached_pages
-            else await self.get_html_pages()
-        )
+    async def parse_all_ItemList(self) -> list[types.JSON]:
+        html_pages = await self.get_html_pages()
         items = await asyncio.gather(*[self.get_ItemList(i) for i in html_pages])
         return [j for i in items for j in i]
 
-    async def parse_all_PageData(
-        self,
-        only_cached_pages: bool = False,
-    ) -> list[types.JSON]:
-        html_pages = (
-            self.get_all_cached_html_pages.values()
-            if only_cached_pages
-            else await self.get_html_pages()
-        )
-        items = await asyncio.gather(*[get_PageData(i) for i in html_pages])
+    async def parse_all_PageData(self) -> list[types.JSON]:
+        html_pages = await self.get_html_pages()
+        items = await asyncio.gather(*[parse_flipkart_page_json(i) for i in html_pages])
         return items
 
     async def parse_all_ProductSummary(
         self,
-        only_cached_pages: bool = False,
     ) -> list[FlipkartSearchPageProductSummaryModel]:
-        pages_data = await self.parse_all_PageData(only_cached_pages)
+        pages_data = await self.parse_all_PageData()
         items = await asyncio.gather(*[self.get_ProductSummary(i) for i in pages_data])
         products = [j for i in items for j in i]
         if not products:
