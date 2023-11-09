@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ValidationError
 
+from ecommerce.core.errors import PaginationError
 from ecommerce.parser.flipkart import FlipkartSearchPage
 from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.parser.flipkart.search_page import FlipkartSearchPageError
@@ -17,14 +18,19 @@ class FlipkartSearchPageParams(BaseModel):
 
 @search_page_router.get("/")
 async def search(q: str, page: int = 1) -> list[FlipkartSearchPageProductSummaryModel]:
-    flipkart = FlipkartSearchPage(q, pages=[page])
+    try:
+        flipkart = FlipkartSearchPage(q, pages=[page])
+    except PaginationError as e:
+        raise HTTPException(400, {"message": str(e), "errorType": e.__class__.__name__})
     html = await flipkart.get_html_pages()
     try:
         summary = await flipkart.get_ProductSummary(
             await parse_flipkart_page_json(html[0])
         )
     except FlipkartSearchPageError as e:
-        raise HTTPException(204, detail={"message": e})
+        raise HTTPException(
+            204, detail={"message": e, "errorType": e.__class__.__name__}
+        )
     return summary
 
 
@@ -33,39 +39,28 @@ async def search_with_params(
     q: str,
     params: FlipkartSearchPageParams = FlipkartSearchPageParams(params={"page": "1"}),
 ) -> list[FlipkartSearchPageProductSummaryModel]:
-    flipkart = FlipkartSearchPage(q, params=params.params)
+    try:
+        flipkart = FlipkartSearchPage(q, params=params.params)
+    except PaginationError as e:
+        raise HTTPException(400, {"message": str(e), "errorType": e.__class__.__name__})
     html = await flipkart.get_html_pages()
     try:
         summary = await flipkart.get_ProductSummary(
             await parse_flipkart_page_json(html[0])
         )
     except FlipkartSearchPageError as e:
-        raise HTTPException(204, {"message": e})
+        raise HTTPException(204, {"message": e, "errorType": e.__class__.__name__})
     return summary
-
-
-def _validate_pagination(from_page: int, to_page: int) -> None:
-    error_msg = None
-    if from_page < 1:
-        error_msg = "'from_page' must be greater than 0."
-    if from_page >= to_page:
-        error_msg = "'from_page' must be smaller than 'to_page'"
-    if error_msg:
-        raise HTTPException(
-            204,
-            {
-                "message": error_msg,
-                "query": {"from_page": from_page, "to_page": to_page},
-            },
-        )
 
 
 @search_page_router.get("/batch")
 async def search_in_batch(
     q: str, from_page: int = 1, to_page: int = 5
 ) -> list[FlipkartSearchPageProductSummaryModel]:
-    _validate_pagination(from_page, to_page)
-    flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page))
+    try:
+        flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page))
+    except PaginationError as e:
+        raise HTTPException(400, {"message": str(e), "errorType": e.__class__.__name__})
     try:
         summary = await flipkart.parse_all_ProductSummary()
     except (ValidationError, TypeError, KeyError) as e:
@@ -80,10 +75,12 @@ async def search_in_batch(
 async def search_in_batch_with_params(
     q: str, from_page: int, to_page: int, params: FlipkartSearchPageParams
 ) -> list[FlipkartSearchPageProductSummaryModel]:
-    _validate_pagination(from_page, to_page)
-    flipkart = FlipkartSearchPage(
-        q, pages=range(from_page, to_page), params=params.params
-    )
+    try:
+        flipkart = FlipkartSearchPage(
+            q, pages=range(from_page, to_page), params=params.params
+        )
+    except PaginationError as e:
+        raise HTTPException(400, {"message": str(e), "errorType": e.__class__.__name__})
     try:
         summary = await flipkart.parse_all_ProductSummary()
     except (ValidationError, TypeError, KeyError) as e:
