@@ -23,10 +23,16 @@ def _is_continuous(seq: Sequence, /) -> bool:
 
 class Pagination:
     def __init__(self, pages: types.PagesLike = range(1, 6), /) -> None:
-        if _is_continuous(pages) is False:
-            raise PaginationError("Pages must be continuous.")
+        if not pages:
+            raise PaginationError("Please pass at least 1 page.")
         if 0 in pages:
             raise PaginationError("0 is prohibited.")
+        if any(i for i in pages if i < 0):
+            raise PaginationError("Pages must be positive.")
+        if pages[0] > pages[-1]:
+            raise PaginationError("Pages must be in ascending order.")
+        if _is_continuous(pages) is False:
+            raise PaginationError("Pages must be continuous.")
         self.pages: list = list(pages)
 
     def __str__(self) -> str:
