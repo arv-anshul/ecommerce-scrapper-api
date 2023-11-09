@@ -128,15 +128,15 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
             schemas=schema, offers=offers, specs=specs, variants=variants
         )
 
-
-async def fetch_multiple_products_info(
-    client: httpx.AsyncClient, *urls: str
-) -> list[FlipkartProductInfo]:
-    tasks = []
-    for url in urls:
+    @staticmethod
+    async def batch_products_info(
+        client: httpx.AsyncClient, *urls: str
+    ) -> list[FlipkartProductInfo]:
+        tasks = []
         with warnings.catch_warnings(record=True, category=FutureWarning):
-            flipkart = FlipkartProductPage(url, curl_fp=None)
-            tasks.append(flipkart.get_html_page(client))
-    pages = await asyncio.gather(*tasks)
-    infos = asyncio.gather(*[FlipkartProductPage.get_ProductInfo(i) for i in pages])
-    return await infos
+            for url in urls:
+                flipkart = FlipkartProductPage(url, curl_fp=None)
+                tasks.append(flipkart.get_html_page(client))
+        pages = await asyncio.gather(*tasks)
+        infos = asyncio.gather(*[FlipkartProductPage.get_ProductInfo(i) for i in pages])
+        return await infos

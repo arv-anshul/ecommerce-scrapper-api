@@ -2,11 +2,7 @@ import httpx
 from fastapi import APIRouter, HTTPException
 
 from ecommerce.core import io
-from ecommerce.parser.flipkart import (
-    PRODUCT_PAGE_CURL_PATH,
-    FlipkartProductPage,
-    fetch_multiple_products_info,
-)
+from ecommerce.parser.flipkart import PRODUCT_PAGE_CURL_PATH, FlipkartProductPage
 from ecommerce.validator.flipkart import FlipkartProductInfo
 
 product_page_router = APIRouter(prefix="/product", tags=["flipkart", "productPage"])
@@ -33,5 +29,5 @@ async def get_info_in_batch(urls: list[str]) -> list[FlipkartProductInfo]:
             },
         )
     async with httpx.AsyncClient(**requests_kws) as client:
-        products = await fetch_multiple_products_info(client, *urls)
+        products = await FlipkartProductPage.batch_products_info(client, *urls)
         return products
