@@ -7,12 +7,8 @@ import httpx
 from ecommerce import types
 from ecommerce.core import io
 from ecommerce.logger import get_logger
-from ecommerce.parser import (
-    BaseProductPageHTMLParser,
-    fetch_page,
-    get_PageData,
-    has_key_value,
-)
+from ecommerce.parser import BaseProductPageHTMLParser, fetch_page, has_key_value
+from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.validator.flipkart.product_page import (
     FlipkartProductInfo,
     _ProductOffers,
@@ -81,7 +77,7 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
 
     @staticmethod
     async def get_ProductInfo(html: str) -> FlipkartProductInfo:
-        page_data = await get_PageData(html)
+        page_data = await parse_flipkart_page_json(html)
         schema, offers, specs, variants = None, None, None, None
 
         # Extract Product Schema Data

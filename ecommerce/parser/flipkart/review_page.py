@@ -10,6 +10,7 @@ from ecommerce.core import io
 from ecommerce.core.errors import ReviewPageError
 from ecommerce.logger import get_logger
 from ecommerce.parser import BaseReviewPageHTMLParser, Pagination
+from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.validator.flipkart import FlipkartProductReviews
 from ecommerce.validator.flipkart.review_page import _ProductDetails
 
@@ -106,7 +107,7 @@ class FlipkartReviewPage(BaseReviewPageHTMLParser):
 
     async def parse_all_reviews(self) -> list[FlipkartProductReviews]:
         pages = await self.get_html_pages()
-        pages_data = await asyncio.gather(*[parser.get_PageData(i) for i in pages])
+        pages_data = await asyncio.gather(*[parse_flipkart_page_json(i) for i in pages])
         reviews = await asyncio.gather(*[self.get_reviews(i) for i in pages_data])
         reviews = [j for i in reviews for j in i]
         logger.info(f"{len(reviews)} reviews fetched.")

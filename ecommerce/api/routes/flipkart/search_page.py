@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ValidationError
 
-from ecommerce.parser import get_PageData
 from ecommerce.parser.flipkart import SEARCH_PAGE_CURL_PATH, FlipkartSearchPage
+from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.parser.flipkart.search_page import FlipkartSearchPageError
 from ecommerce.validator.flipkart.search_page import (
     FlipkartSearchPageProductSummaryModel,
@@ -20,7 +20,9 @@ async def search(q: str, page: int = 1) -> list[FlipkartSearchPageProductSummary
     flipkart = FlipkartSearchPage(q, pages=[page], curl_fp=SEARCH_PAGE_CURL_PATH)
     html = await flipkart.get_html_pages()
     try:
-        summary = await flipkart.get_ProductSummary(await get_PageData(html[0]))
+        summary = await flipkart.get_ProductSummary(
+            await parse_flipkart_page_json(html[0])
+        )
     except FlipkartSearchPageError as e:
         raise HTTPException(204, detail={"message": e})
     return summary
@@ -36,7 +38,9 @@ async def search_with_params(
     )
     html = await flipkart.get_html_pages()
     try:
-        summary = await flipkart.get_ProductSummary(await get_PageData(html[0]))
+        summary = await flipkart.get_ProductSummary(
+            await parse_flipkart_page_json(html[0])
+        )
     except FlipkartSearchPageError as e:
         raise HTTPException(204, {"message": e})
     return summary

@@ -12,6 +12,7 @@ from ecommerce.core import io
 from ecommerce.core.errors import SearchPageError
 from ecommerce.logger import get_logger
 from ecommerce.parser import Pagination, fetch_page, has_key_value
+from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.parser.search_page import BaseSearchPageHTMLParser
 from ecommerce.validator.flipkart import FlipkartSearchPageProductSummaryModel
 
