@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
+from ecommerce.api import APIExceptionResponder
 from ecommerce.parser.flipkart import FlipkartReviewPage
 from ecommerce.validator.flipkart import FlipkartProductReviews
 
@@ -14,6 +15,7 @@ DEFAULT_FLIPKART_REVIEW_PAGE_PARAMS = {
 
 
 @review_page_router.get("/")
+@APIExceptionResponder.better_api_error_response
 async def get_reviews(
     url: str, from_page: int = 1, to_page: int = 5
 ) -> list[FlipkartProductReviews]:
@@ -23,6 +25,7 @@ async def get_reviews(
 
 
 @review_page_router.post("/")
+@APIExceptionResponder.better_api_error_response
 async def get_reviews_with_params(
     from_page: int = 1,
     to_page: int = 5,
@@ -34,9 +37,10 @@ async def get_reviews_with_params(
     try:
         url, params = data.values()
     except ValueError:
-        raise HTTPException(422, {"message": "data must be only 'url' and 'params'."})
+        APIExceptionResponder.update_variables(422)
+        raise ValueError("Data must have only 'url' and 'params' keys.")
     if "page" in params:
-        raise HTTPException(400, "params must not contains 'page' key.")
+        raise ValueError("Params data must not contain 'page' key.")
     flipkart = FlipkartReviewPage(url, range(from_page, to_page), params=params)
     reviews = await flipkart.parse_all_reviews()
     return reviews

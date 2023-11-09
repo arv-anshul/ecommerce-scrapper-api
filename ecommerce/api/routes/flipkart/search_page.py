@@ -1,10 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
-from pydantic import ValidationError
+from fastapi import APIRouter
 
-from ecommerce.core.errors import PaginationError
+from ecommerce.api import APIExceptionResponder
 from ecommerce.parser.flipkart import FlipkartSearchPage
 from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
-from ecommerce.parser.flipkart.search_page import FlipkartSearchPageError
 from ecommerce.validator.flipkart.search_page import (
     FlipkartSearchPageProductSummaryModel,
 )
@@ -18,63 +16,46 @@ DEFAULT_FLIPKART_SEARCH_PAGE_PARAMS = {
 
 
 @search_page_router.get("/")
+@APIExceptionResponder.better_api_error_response
 async def search(q: str, page: int = 1) -> list[FlipkartSearchPageProductSummaryModel]:
-    try:
-        flipkart = FlipkartSearchPage(q, pages=[page])
-    except PaginationError as e:
-        raise HTTPException(400, {"message": str(e), "errorType": e.__class__.__name__})
+    flipkart = FlipkartSearchPage(q, pages=[page])
     html = await flipkart.get_html_pages()
-    try:
-        summary = await flipkart.get_ProductSummary(
-            await parse_flipkart_page_json(html[0])
-        )
-    except FlipkartSearchPageError as e:
-        raise HTTPException(
-            204, detail={"message": e, "errorType": e.__class__.__name__}
-        )
+    APIExceptionResponder.update_variables(204)
+    summary = await flipkart.get_ProductSummary(await parse_flipkart_page_json(html[0]))
+    APIExceptionResponder.reset_variables()
     return summary
 
 
 @search_page_router.post("/")
+@APIExceptionResponder.better_api_error_response
 async def search_with_params(
     q: str,
     params: dict = DEFAULT_FLIPKART_SEARCH_PAGE_PARAMS,
 ) -> list[FlipkartSearchPageProductSummaryModel]:
     if "page" in params:
-        raise HTTPException(400, {"message": "params must not contains 'page' key."})
-    try:
-        flipkart = FlipkartSearchPage(q, params=params)
-    except PaginationError as e:
-        raise HTTPException(400, {"message": str(e), "errorType": e.__class__.__name__})
+        raise ValueError("params must not contains 'page' key.")
+    flipkart = FlipkartSearchPage(q, params=params)
     html = await flipkart.get_html_pages()
-    try:
-        summary = await flipkart.get_ProductSummary(
-            await parse_flipkart_page_json(html[0])
-        )
-    except FlipkartSearchPageError as e:
-        raise HTTPException(204, {"message": e, "errorType": e.__class__.__name__})
+    APIExceptionResponder.update_variables(204)
+    summary = await flipkart.get_ProductSummary(await parse_flipkart_page_json(html[0]))
+    APIExceptionResponder.reset_variables()
     return summary
 
 
 @search_page_router.get("/batch")
+@APIExceptionResponder.better_api_error_response
 async def search_in_batch(
     q: str, from_page: int = 1, to_page: int = 5
 ) -> list[FlipkartSearchPageProductSummaryModel]:
-    try:
-        flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page))
-    except PaginationError as e:
-        raise HTTPException(400, {"message": str(e), "errorType": e.__class__.__name__})
-    try:
-        summary = await flipkart.parse_all_ProductSummary()
-    except (ValidationError, TypeError, KeyError) as e:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            {"message": e, "errorType": e.__class__.__name__},
-        )
+    flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page))
+    APIExceptionResponder.update_variables(422)
+    summary = await flipkart.parse_all_ProductSummary()
+    APIExceptionResponder.reset_variables()
     return summary
 
 
 @search_page_router.post("/batch")
+@APIExceptionResponder.better_api_error_response
 async def search_in_batch_with_params(
     q: str,
     from_page: int,
@@ -82,16 +63,9 @@ async def search_in_batch_with_params(
     params: dict = DEFAULT_FLIPKART_SEARCH_PAGE_PARAMS,
 ) -> list[FlipkartSearchPageProductSummaryModel]:
     if "page" in params:
-        raise HTTPException(400, {"message": "params must not contains 'page' key."})
-    try:
-        flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page), params=params)
-    except PaginationError as e:
-        raise HTTPException(400, {"message": str(e), "errorType": e.__class__.__name__})
-    try:
-        summary = await flipkart.parse_all_ProductSummary()
-    except (ValidationError, TypeError, KeyError) as e:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            {"message": e, "errorType": e.__class__.__name__},
-        )
+        raise ValueError("params must not contains 'page' key.")
+    flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page), params=params)
+    APIExceptionResponder.update_variables(422)
+    summary = await flipkart.parse_all_ProductSummary()
+    APIExceptionResponder.reset_variables()
     return summary

@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 
+from ecommerce.api import APIExceptionResponder
 from ecommerce.api.options import CurlTypeOptions, WebsiteOptions
 from ecommerce.logger import get_logger
 
@@ -18,18 +19,20 @@ class StoreCurlCommand(BaseModel):
 
 
 @curl_router.get("/")
+@APIExceptionResponder.better_api_error_response
 async def get_curl_command(
     curlType: CurlTypeOptions, website: WebsiteOptions
 ) -> StoreCurlCommand:
     path = f"configs/curl/{website.value}.{curlType.value}"
     if not os.path.exists(path):
-        raise HTTPException(
+        APIExceptionResponder.update_variables(
             404,
-            detail={
+            {
                 "message": "curl command not found.",
                 "query": {"curlType": curlType.value, "website": website.value},
             },
         )
+        raise FileNotFoundError
 
     with open(path) as f:
         command = f.read()
@@ -37,12 +40,9 @@ async def get_curl_command(
 
 
 @curl_router.post("/")
+@APIExceptionResponder.better_api_error_response
 def store_curl_command(data: StoreCurlCommand):
     path = Path("configs/curl") / f"{data.website.value}.{data.curlType.value}"
-    if not path.parent.exists():
-        logger.info(f"Making directory at {path.parent!r}")
-        path.parent.mkdir(parents=True)
-
     logger.info(f"Writing curl command into {path!r}")
     path.write_text(data.command)
     return {
