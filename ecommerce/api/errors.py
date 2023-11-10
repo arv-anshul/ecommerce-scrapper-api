@@ -63,6 +63,7 @@ class APIExceptionResponder:
                 return func(*args, **kwargs)
             except Exception as e:
                 logger.error(f"{e.__class__.__name__!r}: {e}")
+                logger.exception(e)
                 if isinstance(e, HTTPException):
                     raise
                 response = JSONResponse(
