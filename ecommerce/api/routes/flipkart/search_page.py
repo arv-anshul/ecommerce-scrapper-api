@@ -58,8 +58,8 @@ async def search_in_batch(
 @APIExceptionResponder.better_api_error_response
 async def search_in_batch_with_params(
     q: str,
-    from_page: int,
-    to_page: int,
+    from_page: int = 1,
+    to_page: int = 5,
     params: dict = DEFAULT_FLIPKART_SEARCH_PAGE_PARAMS,
 ) -> list[FlipkartSearchPageProductSummaryModel]:
     if "page" in params:
