@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 import httpx
@@ -14,16 +15,27 @@ async def fetch_page(url: str, client: httpx.AsyncClient) -> str:
     return r.text
 
 
-def has_key_value(obj: dict | list, key: str, value: Any = None) -> bool:
-    if isinstance(obj, dict):
-        if key in obj and (obj[key] == value or value is None):
+async def has_key_value(o__: dict | list, k__: str, v__: Any = None, /) -> bool:
+    """
+    Returns `True` if the given key-value pair exists in the given object, `False` otherwise.
+
+    Args:
+        obj: The object to search.
+        key: The key to search for.
+        value: The value to search for.
+
+    Returns:
+        `True` if the key-value pair is found, `False` otherwise.
+    """
+
+    if not isinstance(o__, (dict, list)):
+        return False
+    if k__ in o__:
+        if isinstance(o__, list):
             return True
-        else:
-            for v in obj.values():
-                if has_key_value(v, key, value):
-                    return True
-    elif isinstance(obj, list):
-        for i in obj:
-            if has_key_value(i, key, value):
-                return True
-    return False
+        if v__ is None or o__[k__] == v__:
+            return True
+
+    iterator = o__.values() if isinstance(o__, dict) else o__
+    tasks = [asyncio.create_task(has_key_value(i, k__, v__)) for i in iterator]
+    return any(await asyncio.gather(*tasks))

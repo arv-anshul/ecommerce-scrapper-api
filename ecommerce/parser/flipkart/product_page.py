@@ -60,7 +60,7 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
         # Extract Product Schema Data
         schema_data = page_data["seoMeta"]["metadata"]["schema"]
         for i in schema_data:
-            if schema is None and has_key_value(i, "@type", "Product"):
+            if schema is None and await has_key_value(i, "@type", "Product"):
                 schema = _ProductSchema(**i)
                 logger.info(f"Parsed schemas for {schema.name!r}")
 
@@ -68,7 +68,7 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
         for i in [
             i for v in page_data["pageDataV4"]["page"]["data"].values() for i in v
         ]:
-            if offers is None and has_key_value(i, "type", "OfferSummaryV3Group"):
+            if offers is None and await has_key_value(i, "type", "OfferSummaryV3Group"):
                 offers = [
                     _ProductOffers(**j["value"])
                     for j in i["widget"]["data"]["offerGroups"][0][
@@ -76,7 +76,9 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
                     ]
                 ]
                 logger.info(f"Parsed {len(offers)} offers.")
-            if specs is None and has_key_value(i, "type", "ProductSpecificationValue"):
+            if specs is None and await has_key_value(
+                i, "type", "ProductSpecificationValue"
+            ):
                 specs = [
                     _ProductSpecifications(specifications=j["value"]["attributes"])
                     for j in i["widget"]["data"]["renderableComponents"]
@@ -84,8 +86,8 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
                 logger.info(f"Parsed {len(specs)} specs.")
             if (
                 variants is None
-                and has_key_value(i, "type", "ProductSwatchValue")
-                and has_key_value(i, "swatchComponent")
+                and await has_key_value(i, "type", "ProductSwatchValue")
+                and await has_key_value(i, "swatchComponent")
             ):
                 variants_list = i["widget"]["data"]["swatchComponent"]["value"][
                     "attributeOptions"

@@ -70,11 +70,13 @@ class FlipkartReviewPage(BaseReviewPageHTMLParser):
         for i in [
             i for v in page_data["pageDataV4"]["page"]["data"].values() for i in v
         ]:
-            if parser.has_key_value(i, "type", "REVIEWS") and parser.has_key_value(
-                i, "type", "ProductReviewValue"
-            ):
+            if await parser.has_key_value(
+                i, "type", "REVIEWS"
+            ) and await parser.has_key_value(i, "type", "ProductReviewValue"):
                 reviews.append(i["widget"]["data"]["renderableComponents"][0]["value"])
-            if parser.has_key_value(i, "type", "ProductSummaryValue"):
+            if product_details is None and await parser.has_key_value(
+                i, "type", "ProductSummaryValue"
+            ):
                 product_details = _ProductDetails(
                     **i["widget"]["data"]["product"]["value"]
                 )

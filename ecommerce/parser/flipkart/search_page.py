@@ -74,9 +74,9 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         script_tags = soup.select("#jsonLD")
         for tag in script_tags:
             json_content: types.JSON = json.loads(tag.text)
-            if has_key_value(json_content, "@type", "ItemList") and has_key_value(
-                json_content, "@type", "ListItem"
-            ):
+            if await has_key_value(
+                json_content, "@type", "ItemList"
+            ) and await has_key_value(json_content, "@type", "ListItem"):
                 return json_content
         else:
             msg = "ItemList not available on this search page."
@@ -91,10 +91,9 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         for i in [
             i for v in page_data["pageDataV4"]["page"]["data"].values() for i in v
         ]:
-            region_validation = has_key_value(
-                i, "slotType", "WIDGET"
-            ) and has_key_value(i, "type", "PRODUCT_SUMMARY")
-            if region_validation is True:
+            if await has_key_value(i, "slotType", "WIDGET") and await has_key_value(
+                i, "type", "PRODUCT_SUMMARY"
+            ):
                 try:
                     product = FlipkartSearchPageProductSummaryModel(
                         dataId=i["dataId"],
