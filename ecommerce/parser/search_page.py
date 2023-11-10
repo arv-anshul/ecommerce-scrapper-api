@@ -7,11 +7,6 @@ class BaseSearchPageHTMLParser(ABC):
     def urls(self):
         ...
 
-    @property
-    @abstractmethod
-    def get_all_cached_html_pages(self):
-        ...
-
     @abstractmethod
     async def get_html_pages(self):
         ...

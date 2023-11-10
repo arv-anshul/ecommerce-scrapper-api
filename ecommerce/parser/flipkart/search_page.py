@@ -10,7 +10,7 @@ from ecommerce import types
 from ecommerce.core import io
 from ecommerce.core.errors import SearchPageError
 from ecommerce.logger import get_logger
-from ecommerce.parser import Pagination, fetch_page, has_key_value
+from ecommerce.parser import Pagination, get_html_pages, has_key_value
 from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.parser.search_page import BaseSearchPageHTMLParser
 from ecommerce.validator.flipkart import FlipkartSearchPageProductSummaryModel
@@ -32,7 +32,6 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
     ):
         self.search_query = search_query
         self.pages = Pagination(pages)
-        self.__cached_html_pages = {}
 
         self.requests_kws = io.get_curl_command(SEARCH_PAGE_CURL_PATH)
         self.requests_kws.update({"params": params}) if params else ...
@@ -47,26 +46,11 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
             for page in self.pages
         }
 
-    @property
-    def get_all_cached_html_pages(self) -> dict[str, str]:
-        return self.__cached_html_pages
-
-    async def get_html_pages(self) -> list[str]:
-        responses = []
-        async with httpx.AsyncClient(
-            **self.requests_kws,
-            follow_redirects=True,
-            timeout=3,
-        ) as client:
-            for url in self.urls:
-                cached_page = self.__cached_html_pages.get(url)
-                if cached_page:
-                    responses.append(cached_page)
-                else:
-                    response_txt = await fetch_page(url, client)
-                    responses.append(response_txt)
-                    self.__cached_html_pages[url] = response_txt
-        return responses
+    async def get_html_pages(
+        self, client: Optional[httpx.AsyncClient] = None
+    ) -> list[str]:
+        responses = await get_html_pages(self.urls, self.requests_kws, client)
+        return [v for i in responses for v in i.values()]
 
     @staticmethod
     async def get_ItemList(html: str) -> types.JSON:

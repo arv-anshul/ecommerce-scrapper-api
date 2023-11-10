@@ -6,7 +6,7 @@ import httpx
 from ecommerce import types
 from ecommerce.core import io
 from ecommerce.logger import get_logger
-from ecommerce.parser import BaseProductPageHTMLParser, fetch_page, has_key_value
+from ecommerce.parser import BaseProductPageHTMLParser, get_html_pages, has_key_value
 from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.validator.flipkart.product_page import (
     FlipkartProductInfo,
@@ -26,31 +26,13 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
         params: Optional[types.URLParams] = None,
     ) -> None:
         self.url = url
-        self.__cached_page: dict[str, str] = {}
 
         self.requests_kws = io.get_curl_command(PRODUCT_PAGE_CURL_PATH)
         self.requests_kws.update({"params": params}) if params else ...
 
-    @property
-    def get_cached_html_pages(self) -> Optional[dict[str, str]]:
-        return self.__cached_page if self.__cached_page else None
-
     async def get_html_page(self, client: Optional[httpx.AsyncClient] = None) -> str:
-        if self.url in self.__cached_page:
-            logger.info(f"Returning cached page of url {self.url!r}")
-            return self.__cached_page[self.url]
-
-        # If client is provide then just make request with the url
-        if client:
-            return await fetch_page(self.url, client)
-
-        async with httpx.AsyncClient(
-            **self.requests_kws,
-            follow_redirects=True,
-            timeout=3,
-        ) as client:
-            html = await fetch_page(self.url, client)
-            return html
+        responses = await get_html_pages([self.url], self.requests_kws, client)
+        return [v for i in responses for v in i.values()][0]
 
     @staticmethod
     async def get_ProductInfo(html: str) -> FlipkartProductInfo:
@@ -107,10 +89,8 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
     async def batch_products_info(
         client: httpx.AsyncClient, *urls: str
     ) -> list[FlipkartProductInfo]:
-        tasks = []
-        for url in urls:
-            flipkart = FlipkartProductPage(url)
-            tasks.append(flipkart.get_html_page(client))
-        pages = await asyncio.gather(*tasks)
+        curl_command = io.get_curl_command(PRODUCT_PAGE_CURL_PATH)
+        responses = await get_html_pages(urls, curl_command, client)
+        pages = [v for i in responses for v in i.values()]
         infos = asyncio.gather(*[FlipkartProductPage.get_ProductInfo(i) for i in pages])
         return await infos

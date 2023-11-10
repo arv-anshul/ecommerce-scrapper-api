@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any
+from typing import Any, Iterable, Optional
 
 import httpx
 
@@ -8,11 +8,31 @@ from ecommerce.logger import get_logger
 logger = get_logger(__name__)
 
 
-async def fetch_page(url: str, client: httpx.AsyncClient) -> str:
+async def fetch_page(url: str, client: httpx.AsyncClient) -> dict[str, str]:
     r = await client.get(url)
     logger.info(f"[{r.status_code}]:{r.url}")
     r.raise_for_status()
-    return r.text
+    return {str(r.url): r.text}
+
+
+async def get_html_pages(
+    urls: Iterable[str],
+    requests_kws: Optional[dict] = None,
+    client: Optional[httpx.AsyncClient] = None,
+) -> list[dict[str, str]]:
+    if client is not None:
+        tasks = [fetch_page(url, client) for url in urls]
+        return await asyncio.gather(*tasks)
+
+    if requests_kws is None:
+        raise ValueError("Provide 'requests_kws' while making http requests.")
+    async with httpx.AsyncClient(
+        **requests_kws,
+        follow_redirects=True,
+        timeout=3,
+    ) as c:
+        tasks = [fetch_page(url, c) for url in urls]
+        return await asyncio.gather(*tasks)
 
 
 async def has_key_value(o__: dict | list, k__: str, v__: Any = None, /) -> bool:

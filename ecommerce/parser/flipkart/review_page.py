@@ -8,7 +8,7 @@ from ecommerce import parser, types
 from ecommerce.core import io
 from ecommerce.core.errors import ReviewPageError
 from ecommerce.logger import get_logger
-from ecommerce.parser import BaseReviewPageHTMLParser, Pagination
+from ecommerce.parser import BaseReviewPageHTMLParser, Pagination, get_html_pages
 from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.validator.flipkart import FlipkartProductReviews
 from ecommerce.validator.flipkart.review_page import _ProductDetails
@@ -30,7 +30,6 @@ class FlipkartReviewPage(BaseReviewPageHTMLParser):
     ) -> None:
         self._product_url = product_url
         self.pages = Pagination(pages)
-        self.__cached_html_pages = {}
 
         self.requests_kws = io.get_curl_command(FLIPKART_REVIEW_PAGE_CURL_PATH)
         self.requests_kws.update({"params": params}) if params else ...
@@ -46,21 +45,11 @@ class FlipkartReviewPage(BaseReviewPageHTMLParser):
             for page in self.pages
         }
 
-    async def get_html_pages(self) -> list[str]:
-        responses = []
-        async with httpx.AsyncClient(
-            **self.requests_kws,
-            follow_redirects=True,
-            timeout=3,
-        ) as client:
-            for url in self.urls:
-                if url in self.__cached_html_pages:
-                    responses.append(self.__cached_html_pages[url])
-
-                response = await parser.fetch_page(url, client)
-                self.__cached_html_pages[url] = response
-                responses.append(response)
-            return responses
+    async def get_html_pages(
+        self, client: Optional[httpx.AsyncClient] = None
+    ) -> list[str]:
+        responses = await get_html_pages(self.urls, self.requests_kws, client)
+        return [v for i in responses for v in i.values()]
 
     @staticmethod
     async def get_reviews(page_data: types.JSON) -> list[FlipkartProductReviews]:

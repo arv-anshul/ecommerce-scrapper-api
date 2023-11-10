@@ -16,6 +16,7 @@ def get_curl_command(fp: str) -> dict:
         # Remove url and method keys because they are passed explicitly
         del requests_kws["url"]
         del requests_kws["method"]
+        requests_kws.update({"params": {}})
         return requests_kws
 
     error_msg = f"Path: {fp!r}"
