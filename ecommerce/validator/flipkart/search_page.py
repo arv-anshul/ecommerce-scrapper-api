@@ -133,3 +133,9 @@ class FlipkartSearchPageProductSummaryModel(BaseModel):
         if not v.startswith("/"):
             raise ValueError("baseUrl must startswith '/'.")
         return "https://www.flipkart.com" + v
+
+
+class FlipkartSearchPageItemList(BaseModel):
+    pid: str
+    name: Optional[str] = None
+    url: Optional[str] = None

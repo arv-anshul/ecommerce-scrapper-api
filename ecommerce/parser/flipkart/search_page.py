@@ -1,5 +1,4 @@
 import asyncio
-import json
 import urllib.parse
 from typing import Optional
 
@@ -13,7 +12,10 @@ from ecommerce.logger import get_logger
 from ecommerce.parser import Pagination, get_html_pages, has_key_value
 from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
 from ecommerce.parser.search_page import BaseSearchPageHTMLParser
-from ecommerce.validator.flipkart import FlipkartSearchPageProductSummaryModel
+from ecommerce.validator.flipkart import (
+    FlipkartSearchPageItemList,
+    FlipkartSearchPageProductSummaryModel,
+)
 
 logger = get_logger(__name__)
 SEARCH_PAGE_CURL_PATH = "configs/curl/flipkart.searchPage"
@@ -53,19 +55,25 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         return [v for i in responses for v in i.values()]
 
     @staticmethod
-    async def get_ItemList(html: str) -> types.JSON:
+    async def get_ItemList(html: str) -> list[FlipkartSearchPageItemList]:
         soup = BeautifulSoup(html, "html.parser")
-        script_tags = soup.select("#jsonLD")
-        for tag in script_tags:
-            json_content: types.JSON = json.loads(tag.text)
-            if await has_key_value(
-                json_content, "@type", "ItemList"
-            ) and await has_key_value(json_content, "@type", "ListItem"):
-                return json_content
-        else:
-            msg = "ItemList not available on this search page."
-            logger.error(msg)
-            raise ValueError(msg)
+        page_data = await parse_flipkart_page_json(html)
+        product_ids = page_data["pageDataV4"]["browseMetadata"]["productList"]
+
+        async def get_product_details(pid: str) -> dict[str, Optional[str]]:
+            product_card = soup.select_one(f"div[data-id={pid!r}]")
+            if product_card is None:
+                return {"pid": pid}
+            url: str = product_card.div.a["href"]  # type: ignore
+            img_tag = product_card.select_one("img[loading]")
+            return {
+                "pid": pid,
+                "name": img_tag["alt"] if img_tag else None,  # type: ignore
+                "url": "https://flipkart.com" + url.split("?")[0] + f"?pid={pid}",
+            }
+
+        products = await asyncio.gather(*[get_product_details(i) for i in product_ids])
+        return [FlipkartSearchPageItemList(**i) for i in products]
 
     @staticmethod
     async def get_ProductSummary(
@@ -94,7 +102,7 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         logger.info(f"Parsed {len(products)} products summary.")
         return products
 
-    async def parse_all_ItemList(self) -> list[types.JSON]:
+    async def parse_all_ItemList(self) -> list[FlipkartSearchPageItemList]:
         html_pages = await self.get_html_pages()
         items = await asyncio.gather(*[self.get_ItemList(i) for i in html_pages])
         return [j for i in items for j in i]

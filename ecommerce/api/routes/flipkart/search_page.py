@@ -3,7 +3,8 @@ from fastapi import APIRouter
 from ecommerce.api import APIExceptionResponder
 from ecommerce.parser.flipkart import FlipkartSearchPage
 from ecommerce.parser.flipkart._utils import parse_flipkart_page_json
-from ecommerce.validator.flipkart.search_page import (
+from ecommerce.validator.flipkart import (
+    FlipkartSearchPageItemList,
     FlipkartSearchPageProductSummaryModel,
 )
 
@@ -69,3 +70,32 @@ async def search_in_batch_with_params(
     summary = await flipkart.parse_all_ProductSummary()
     APIExceptionResponder.reset_variables()
     return summary
+
+
+@search_page_router.get("/item-list")
+@APIExceptionResponder.better_api_error_response
+async def get_item_list_from_search_page(
+    q: str,
+    from_page: int = 1,
+    to_page: int = 5,
+) -> list[FlipkartSearchPageItemList]:
+    flipkart = FlipkartSearchPage(q, range(from_page, to_page))
+    APIExceptionResponder.update_variables(422)
+    items = await flipkart.parse_all_ItemList()
+    APIExceptionResponder.reset_variables()
+    return items
+
+
+@search_page_router.post("/item-list")
+@APIExceptionResponder.better_api_error_response
+async def get_item_list_from_search_page_with_params(
+    q: str,
+    from_page: int = 1,
+    to_page: int = 5,
+    params: dict = DEFAULT_FLIPKART_SEARCH_PAGE_PARAMS,
+) -> list[FlipkartSearchPageItemList]:
+    flipkart = FlipkartSearchPage(q, range(from_page, to_page), params)
+    APIExceptionResponder.update_variables(422)
+    items = await flipkart.parse_all_ItemList()
+    APIExceptionResponder.reset_variables()
+    return items
