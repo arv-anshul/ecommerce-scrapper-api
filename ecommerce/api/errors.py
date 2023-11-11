@@ -1,4 +1,5 @@
 import functools
+from ast import literal_eval
 from asyncio import iscoroutinefunction
 from typing import Any
 
@@ -10,7 +11,7 @@ from ecommerce.logger import get_logger
 logger = get_logger(__name__)
 
 
-class APIExceptionResponder:
+class _APIExceptionResponder:
     """
     Default `status_code` is **400**.
 
@@ -32,19 +33,16 @@ class APIExceptionResponder:
     status_code: int = 400
     content: Any = None
 
-    @classmethod
-    def update_variables(cls, status_code: int, content: Any = None) -> None:
-        cls.status_code = status_code
-        cls.content = content
+    def update(self, status_code: int, content: Any = None) -> None:
+        self.status_code = status_code
+        self.content = content
 
-    @classmethod
-    def reset_variables(cls) -> None:
+    def reset(self) -> None:
         """Reset the class variables to its default values."""
-        cls.status_code = 400
-        cls.content = None
+        self.status_code = 400
+        self.content = None
 
-    @classmethod
-    def better_api_error_response(cls, func):
+    def better_api_error_response(self, func):
         """
         Catches all errors and return them as `fastapi.response.JSONResponse`
         with **400** status code.
@@ -68,13 +66,26 @@ class APIExceptionResponder:
                     raise
                 response = JSONResponse(
                     content=(
-                        cls.content
-                        if cls.content
-                        else {"message": str(e), "errorType": e.__class__.__name__}
+                        self.content
+                        if self.content
+                        else {
+                            "message": self.__validate_error_msg(e),
+                            "errorType": e.__class__.__name__,
+                        }
                     ),
-                    status_code=cls.status_code,
+                    status_code=self.status_code,
                 )
-                cls.reset_variables()
                 return response
+            finally:
+                self.reset()
 
         return wrapper
+
+    def __validate_error_msg(self, msg: Exception, /) -> Any:
+        try:
+            return literal_eval(str(msg))
+        except (ValueError, SyntaxError):
+            return str(msg)
+
+
+APIExceptionResponder = _APIExceptionResponder()

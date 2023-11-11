@@ -37,7 +37,7 @@ async def get_reviews_with_params(
     try:
         url, params = data.values()
     except ValueError:
-        APIExceptionResponder.update_variables(422)
+        APIExceptionResponder.update(422)
         raise ValueError("Data must have only 'url' and 'params' keys.")
     if "page" in params:
         raise ValueError("Params data must not contain 'page' key.")

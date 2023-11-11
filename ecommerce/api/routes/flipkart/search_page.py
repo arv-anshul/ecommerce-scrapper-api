@@ -21,9 +21,8 @@ DEFAULT_FLIPKART_SEARCH_PAGE_PARAMS = {
 async def search(q: str, page: int = 1) -> list[FlipkartSearchPageProductSummaryModel]:
     flipkart = FlipkartSearchPage(q, pages=[page])
     html = await flipkart.get_html_pages()
-    APIExceptionResponder.update_variables(204)
+    APIExceptionResponder.update(204)
     summary = await flipkart.get_ProductSummary(await parse_flipkart_page_json(html[0]))
-    APIExceptionResponder.reset_variables()
     return summary
 
 
@@ -37,9 +36,8 @@ async def search_with_params(
         raise ValueError("params must not contains 'page' key.")
     flipkart = FlipkartSearchPage(q, params=params)
     html = await flipkart.get_html_pages()
-    APIExceptionResponder.update_variables(204)
+    APIExceptionResponder.update(204)
     summary = await flipkart.get_ProductSummary(await parse_flipkart_page_json(html[0]))
-    APIExceptionResponder.reset_variables()
     return summary
 
 
@@ -49,9 +47,8 @@ async def search_in_batch(
     q: str, from_page: int = 1, to_page: int = 5
 ) -> list[FlipkartSearchPageProductSummaryModel]:
     flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page))
-    APIExceptionResponder.update_variables(422)
+    APIExceptionResponder.update(422)
     summary = await flipkart.parse_all_ProductSummary()
-    APIExceptionResponder.reset_variables()
     return summary
 
 
@@ -66,9 +63,8 @@ async def search_in_batch_with_params(
     if "page" in params:
         raise ValueError("params must not contains 'page' key.")
     flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page), params=params)
-    APIExceptionResponder.update_variables(422)
+    APIExceptionResponder.update(422)
     summary = await flipkart.parse_all_ProductSummary()
-    APIExceptionResponder.reset_variables()
     return summary
 
 
@@ -80,9 +76,8 @@ async def get_item_list_from_search_page(
     to_page: int = 5,
 ) -> list[FlipkartSearchPageItemList]:
     flipkart = FlipkartSearchPage(q, range(from_page, to_page))
-    APIExceptionResponder.update_variables(422)
+    APIExceptionResponder.update(422)
     items = await flipkart.parse_all_ItemList()
-    APIExceptionResponder.reset_variables()
     return items
 
 
@@ -95,7 +90,6 @@ async def get_item_list_from_search_page_with_params(
     params: dict = DEFAULT_FLIPKART_SEARCH_PAGE_PARAMS,
 ) -> list[FlipkartSearchPageItemList]:
     flipkart = FlipkartSearchPage(q, range(from_page, to_page), params)
-    APIExceptionResponder.update_variables(422)
+    APIExceptionResponder.update(422)
     items = await flipkart.parse_all_ItemList()
-    APIExceptionResponder.reset_variables()
     return items

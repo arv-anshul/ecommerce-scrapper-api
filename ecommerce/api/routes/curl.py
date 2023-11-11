@@ -25,7 +25,7 @@ async def get_curl_command(
 ) -> StoreCurlCommand:
     path = f"configs/curl/{website.value}.{curlType.value}"
     if not os.path.exists(path):
-        APIExceptionResponder.update_variables(
+        APIExceptionResponder.update(
             404,
             {
                 "message": "curl command not found.",
