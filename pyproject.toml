@@ -22,3 +22,50 @@ dev-dependencies = ["pytest>=8.0.0"]
 
 [tool.rye.scripts]
 app = "uvicorn --reload ecommerce.api.app:app"
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+extend-select = [
+    "B",
+    "BLE",
+    "C4",
+    "C90",
+    "E",
+    "F",
+    "I",
+    "ICN",
+    "INP",
+    "ISC",
+    "PGH",
+    "PIE",
+    "PTH",
+    "Q",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "TCH",
+    "UP",
+    "W",
+    "YTT",
+]
+extend-ignore = [
+    "B008",
+    "B905",
+    "E501",
+    "E741",
+    "INP001",
+    "ISC001",
+    "N818",
+    "PGH003",
+    "S101",
+    "S301",
+    "S311",
+    "UP035",
+]
+extend-unfixable = ["B", "F401"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F401"]

@@ -53,8 +53,7 @@ class Pagination:
         return str(self)
 
     def __iter__(self) -> Iterator[int]:
-        for i in self.pages:
-            yield i
+        yield from self.pages
 
     def __len__(self) -> int:
         return len(self.pages)
@@ -85,6 +84,6 @@ class Pagination:
 
     def add_prev_n_pages(self, n: int, /) -> None:
         new_pages = [self.pages[0] - i for i in range(1, n + 1)][::-1]
-        if any([i for i in new_pages if i < 0]):
+        if any(i for i in new_pages if i < 0):
             raise PaginationError("Pages must be positive.")
         self.pages = new_pages + self.pages

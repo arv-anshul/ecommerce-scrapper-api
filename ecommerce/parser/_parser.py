@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable
 
 import httpx
 
@@ -17,8 +17,8 @@ async def fetch_page(url: str, client: httpx.AsyncClient) -> dict[str, str]:
 
 async def get_html_pages(
     urls: Iterable[str],
-    requests_kws: Optional[dict] = None,
-    client: Optional[httpx.AsyncClient] = None,
+    requests_kws: dict | None = None,
+    client: httpx.AsyncClient | None = None,
 ) -> list[dict[str, str]]:
     if client is not None:
         tasks = [fetch_page(url, client) for url in urls]
@@ -48,7 +48,7 @@ async def has_key_value(o__: dict | list, k__: str, v__: Any = None, /) -> bool:
         `True` if the key-value pair is found, `False` otherwise.
     """
 
-    if not isinstance(o__, (dict, list)):
+    if not isinstance(o__, dict | list):
         return False
     if k__ in o__:
         if isinstance(o__, list):

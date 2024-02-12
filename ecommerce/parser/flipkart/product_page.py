@@ -1,5 +1,4 @@
 import asyncio
-from typing import Optional
 
 import httpx
 
@@ -23,16 +22,16 @@ class FlipkartProductPage(BaseProductPageHTMLParser):
     def __init__(
         self,
         url: str,
-        params: Optional[types.URLParams] = None,
+        params: types.URLParams | None = None,
     ) -> None:
         self.url = url
 
         self.requests_kws = io.get_curl_command(PRODUCT_PAGE_CURL_PATH)
         self.requests_kws.update({"params": params}) if params else ...
 
-    async def get_html_page(self, client: Optional[httpx.AsyncClient] = None) -> str:
+    async def get_html_page(self, client: httpx.AsyncClient | None = None) -> str:
         responses = await get_html_pages([self.url], self.requests_kws, client)
-        return [v for i in responses for v in i.values()][0]
+        return next(v for i in responses for v in i.values())
 
     @staticmethod
     async def get_ProductInfo(html: str) -> FlipkartProductInfo:

@@ -1,6 +1,5 @@
 import asyncio
 import urllib.parse
-from typing import Optional
 
 import httpx
 from bs4 import BeautifulSoup
@@ -30,7 +29,7 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         self,
         search_query: str,
         pages: types.PagesLike = range(1, 6),
-        params: Optional[types.URLParams] = None,
+        params: types.URLParams | None = None,
     ):
         self.search_query = search_query
         self.pages = Pagination(pages)
@@ -49,7 +48,7 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         }
 
     async def get_html_pages(
-        self, client: Optional[httpx.AsyncClient] = None
+        self, client: httpx.AsyncClient | None = None
     ) -> list[str]:
         responses = await get_html_pages(self.urls, self.requests_kws, client)
         return [v for i in responses for v in i.values()]
@@ -60,7 +59,7 @@ class FlipkartSearchPage(BaseSearchPageHTMLParser):
         page_data = await parse_flipkart_page_json(html)
         product_ids = page_data["pageDataV4"]["browseMetadata"]["productList"]
 
-        async def get_product_details(pid: str) -> dict[str, Optional[str]]:
+        async def get_product_details(pid: str) -> dict[str, str | None]:
             product_card = soup.select_one(f"div[data-id={pid!r}]")
             if product_card is None:
                 return {"pid": pid}

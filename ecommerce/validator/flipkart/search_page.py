@@ -1,13 +1,13 @@
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, field_validator
 
 
 class AnalyticsData(BaseModel):
     category: str
-    subCategory: Optional[str] = None
+    subCategory: str | None = None
     superCategory: str
-    vertical: Optional[str] = None
+    vertical: str | None = None
 
 
 class Availability(BaseModel):
@@ -25,7 +25,7 @@ class Video(BaseModel):
 
 class Media(BaseModel):
     images: list
-    videos: Optional[list[Video]] = None
+    videos: list[Video] | None = None
 
     @field_validator("images")
     @classmethod
@@ -67,7 +67,7 @@ class Price(BaseModel):
     additionalText: Any
     currency: str
     decimalValue: str
-    discount: Optional[int]
+    discount: int | None
     downpaymentRate: int
     downpaymentRequired: bool
     name: str
@@ -76,7 +76,7 @@ class Price(BaseModel):
 
 
 class Pricing(BaseModel):
-    discountAmount: Optional[int] = None
+    discountAmount: int | None = None
     finalPrice: FinalPrice
     mrp: Mrp
     prices: list[Price]
@@ -91,14 +91,14 @@ class Rating(BaseModel):
     count: int
     histogramBaseCount: int
     reviewCount: int
-    roundOffCount: Optional[str] = None
+    roundOffCount: str | None = None
     type: str
 
 
 class Titles(BaseModel):
-    newTitle: Optional[str] = None
-    subtitle: Optional[str] = None
-    superTitle: Optional[str] = None
+    newTitle: str | None = None
+    subtitle: str | None = None
+    superTitle: str | None = None
     title: str
 
 
@@ -110,10 +110,10 @@ class FlipkartSearchPageProductSummaryModel(BaseModel):
     elementId: str
     id: str
     itemId: str
-    keySpecs: Optional[list[str]] = None
+    keySpecs: list[str] | None = None
     listingId: str
     media: Media
-    minKeySpecs: Optional[list[str]] = None
+    minKeySpecs: list[str] | None = None
     parentId: int
     pricing: Pricing
     productBrand: str
@@ -123,7 +123,7 @@ class FlipkartSearchPageProductSummaryModel(BaseModel):
     titles: Titles
     type: str
     vertical: str
-    warrantySummary: Optional[str] = None
+    warrantySummary: str | None = None
 
     @field_validator("baseUrl")
     @classmethod
@@ -137,5 +137,5 @@ class FlipkartSearchPageProductSummaryModel(BaseModel):
 
 class FlipkartSearchPageItemList(BaseModel):
     pid: str
-    name: Optional[str] = None
-    url: Optional[str] = None
+    name: str | None = None
+    url: str | None = None

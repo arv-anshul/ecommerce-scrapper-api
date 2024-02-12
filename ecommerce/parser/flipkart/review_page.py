@@ -1,6 +1,5 @@
 import asyncio
 import urllib.parse
-from typing import Optional
 
 import httpx
 
@@ -26,7 +25,7 @@ class FlipkartReviewPage(BaseReviewPageHTMLParser):
         self,
         product_url: str,
         pages: types.PagesLike = range(1, 5),
-        params: Optional[types.URLParams] = None,
+        params: types.URLParams | None = None,
     ) -> None:
         self._product_url = product_url
         self.pages = Pagination(pages)
@@ -46,7 +45,7 @@ class FlipkartReviewPage(BaseReviewPageHTMLParser):
         }
 
     async def get_html_pages(
-        self, client: Optional[httpx.AsyncClient] = None
+        self, client: httpx.AsyncClient | None = None
     ) -> list[str]:
         responses = await get_html_pages(self.urls, self.requests_kws, client)
         return [v for i in responses for v in i.values()]

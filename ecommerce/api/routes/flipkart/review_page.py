@@ -29,7 +29,7 @@ async def get_reviews(
 async def get_reviews_with_params(
     from_page: int = 1,
     to_page: int = 5,
-    data: dict = {
+    data: dict = {  # noqa: B006
         "url": "",
         "params": DEFAULT_FLIPKART_REVIEW_PAGE_PARAMS,
     },
@@ -38,7 +38,7 @@ async def get_reviews_with_params(
         url, params = data.values()
     except ValueError:
         APIExceptionResponder.update(422)
-        raise ValueError("Data must have only 'url' and 'params' keys.")
+        raise ValueError("Data must have only 'url' and 'params' keys.") from None
     if "page" in params:
         raise ValueError("Params data must not contain 'page' key.")
     flipkart = FlipkartReviewPage(url, range(from_page, to_page), params=params)

@@ -45,7 +45,7 @@ def test_search_with_invalid_params():
     )
     assert response.status_code == 400
     data = response.json()
-    assert "params must not contains 'page' key." == data["message"]
+    assert data["message"] == "params must not contains 'page' key."
 
 
 def test_search_batch_with_invalid_params():
@@ -55,16 +55,16 @@ def test_search_batch_with_invalid_params():
     )
     assert response.status_code == 400
     data = response.json()
-    assert "params must not contains 'page' key." == data["message"]
+    assert data["message"] == "params must not contains 'page' key."
 
 
 def test_search_batch_with_invalid_pages():
     response = client.get(f"{_ROOT_PATH}/batch/?q={_RANDOM_SEARCH_QUERY}&from_page=-1")
     assert response.status_code == 400
     data = response.json()
-    assert "Pages must be positive." == data["message"]
+    assert data["message"] == "Pages must be positive."
 
     response = client.get(f"{_ROOT_PATH}/batch/?q={_RANDOM_SEARCH_QUERY}&from_page=0")
     assert response.status_code == 400
     data = response.json()
-    assert "0 is prohibited." == data["message"]
+    assert data["message"] == "0 is prohibited."

@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from fastapi import APIRouter
 
@@ -19,9 +19,9 @@ async def root():
     return {
         "running": True,
         "curl_commands": {
-            "reviewPage": os.path.exists("configs/curl/flipkart.reviewPage"),
-            "searchPage": os.path.exists("configs/curl/flipkart.searchPage"),
-            "productPage": os.path.exists("configs/curl/flipkart.productPage"),
+            "reviewPage": Path("configs/curl/flipkart.reviewPage").exists(),
+            "searchPage": Path("configs/curl/flipkart.searchPage").exists(),
+            "productPage": Path("configs/curl/flipkart.productPage").exists(),
         },
     }
 

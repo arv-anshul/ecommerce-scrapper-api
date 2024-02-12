@@ -23,8 +23,8 @@ class StoreCurlCommand(BaseModel):
 async def get_curl_command(
     curlType: CurlTypeOptions, website: WebsiteOptions
 ) -> StoreCurlCommand:
-    path = f"configs/curl/{website.value}.{curlType.value}"
-    if not os.path.exists(path):
+    path = Path(f"configs/curl/{website.value}.{curlType.value}")
+    if not path.exists():
         APIExceptionResponder.update(
             404,
             {
@@ -34,7 +34,7 @@ async def get_curl_command(
         )
         raise FileNotFoundError
 
-    with open(path) as f:
+    with path.open() as f:
         command = f.read()
         return StoreCurlCommand(curlType=curlType, website=website, command=command)
 
@@ -53,9 +53,9 @@ def store_curl_command(data: StoreCurlCommand):
 
 @curl_router.get("/check")
 async def check_curl_command_exists(curlType: CurlTypeOptions, website: WebsiteOptions):
-    path = f"configs/curl/{website.value}.{curlType.value}"
+    path = Path(f"configs/curl/{website.value}.{curlType.value}")
     content = {"path": path, "exists": False}
-    if os.path.exists(path):
+    if path.exists():
         content["exists"] = True
     return content
 

@@ -1,5 +1,5 @@
 import functools
-import os.path
+from pathlib import Path
 
 import curler
 
@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 @functools.lru_cache(8)
 def get_curl_command(fp: str) -> dict:
     logger.info(f"Reading: {fp!r}")
-    if os.path.exists(fp):
+    if Path(fp).exists():
         requests_kws = dict(curler.parse_file(fp).for_requests)
         # Remove url and method keys because they are passed explicitly
         del requests_kws["url"]

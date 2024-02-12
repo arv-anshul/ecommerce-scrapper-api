@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -23,10 +21,10 @@ class _ProductOffers(BaseModel):
     `offerGroups > renderableComponents > InList > value`
     """
 
-    appliedOn: Optional[str] = None
-    description: Optional[str] = None
+    appliedOn: str | None = None
+    description: str | None = None
     formattedText: str
-    id: Optional[str] = None
+    id: str | None = None
     identifier: str
     tags: list[str]
     title: str
@@ -61,7 +59,7 @@ class _ProductVariants:
 
 
 class FlipkartProductInfo(BaseModel):
-    schemas: Optional[_ProductSchema]
-    offers: Optional[list[_ProductOffers]]
-    specs: Optional[list[_ProductSpecifications]]
-    variants: Optional[dict[str, list[str]]]
+    schemas: _ProductSchema | None
+    offers: list[_ProductOffers] | None
+    specs: list[_ProductSpecifications] | None
+    variants: dict[str, list[str]] | None

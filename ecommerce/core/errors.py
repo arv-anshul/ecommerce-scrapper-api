@@ -1,9 +1,6 @@
-from typing import Type
-
-
 def RaiseWithExtraMsg(
     c__: Exception,
-    e__: Type[Exception],
+    e__: type[Exception],
     msg__: object,
     /,
 ) -> Exception:
