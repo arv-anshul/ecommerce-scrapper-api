@@ -1,0 +1,24 @@
+[project]
+name = "ecommerce-scrapper-api"
+version = "0.1.0"
+description = "Fetch data from ecommerce websites like flipkart."
+authors = [{ name = "Anshul Raj Verma", email = "arv.anshul.1864@gmail.com" }]
+readme = "README.md"
+requires-python = ">= 3.11"
+license = "MIT"
+dependencies = [
+    "bs4>=0.0.2",
+    "curler==0.1.0",
+    "fastapi>=0.109.2",
+    "httpx>=0.26.0",
+    "pydantic>=2.6.1",
+    "uvicorn>=0.27.1",
+]
+
+[tool.rye]
+managed = true
+virtual = true
+dev-dependencies = ["pytest>=8.0.0"]
+
+[tool.rye.scripts]
+app = "uvicorn --reload ecommerce.api.app:app"
