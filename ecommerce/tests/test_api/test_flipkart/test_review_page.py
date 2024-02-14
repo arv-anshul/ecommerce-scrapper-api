@@ -7,19 +7,17 @@ from ecommerce.api.routes.flipkart.review_page import (
 
 from ._utils import _RANDOM_PRODUCT_URL
 
-client = TestClient(app, "https://localhost:8000/")
-
-_ROOT_PATH = "/flipkart/product/reviews"
+client = TestClient(app, "https://localhost:8000/flipkart/product/reviews")
 
 
 def test_get_reviews():
-    response = client.get(f"{_ROOT_PATH}/?url={_RANDOM_PRODUCT_URL}")
+    response = client.get(f"/?url={_RANDOM_PRODUCT_URL}")
     assert response.status_code == 200
 
 
 def test_get_reviews_with_params():
     response = client.post(
-        f"{_ROOT_PATH}/?to_page=3",
+        "/?to_page=3",
         json={
             "url": _RANDOM_PRODUCT_URL,
             "params": DEFAULT_FLIPKART_REVIEW_PAGE_PARAMS,
@@ -30,7 +28,7 @@ def test_get_reviews_with_params():
 
 def test_get_reviews_with_invalid_params():
     response = client.post(
-        f"{_ROOT_PATH}/",
+        "/",
         json={"url": "https://www.flipkart.com/bad-url", "params": {"page": 1}},
     )
     assert response.status_code == 400
