@@ -30,11 +30,13 @@ async def search(q: str, page: int = 1) -> list[FlipkartSearchPageProductSummary
 @APIExceptionResponder.better_api_error_response
 async def search_with_params(
     q: str,
+    from_page: int = 1,
+    to_page: int = 5,
     params: dict = DEFAULT_FLIPKART_SEARCH_PAGE_PARAMS,
 ) -> list[FlipkartSearchPageProductSummaryModel]:
     if "page" in params:
         raise ValueError("params must not contains 'page' key.")
-    flipkart = FlipkartSearchPage(q, params=params)
+    flipkart = FlipkartSearchPage(q, pages=range(from_page, to_page), params=params)
     html = await flipkart.get_html_pages()
     APIExceptionResponder.update(204)
     summary = await flipkart.get_ProductSummary(await parse_flipkart_page_json(html[0]))
